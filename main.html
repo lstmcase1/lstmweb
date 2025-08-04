@@ -246,7 +246,7 @@
                     success: function (data) {
                         alldata = data;
                         console.log(data['長度']);
-                        if (data['長度'] < 15) {
+                        if (data['長度'] > 1) {
                             for (var i = 0; i < data['長度']; i++) {
                                 $("#one").append(data['日期'][i] + '<br>');
                                 $("#two").append(data['產品'][i] + '<br>');
@@ -575,5 +575,6 @@
 </body>
 
 </html>
+
 
 
