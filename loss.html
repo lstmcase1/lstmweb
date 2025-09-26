@@ -42,10 +42,10 @@
 
     <script>
         $(document).ready(function () {
-            const urlval = "http://127.0.0.1:5001";
+            const urlval = "https://9418c11bb344.ngrok-free.app";
             let tableData = []; // 儲存原始 getproduct 資料
             let newData = [];
-            // 1️⃣ 先抓 getproduct
+            //getproduct
             $.ajax({
                 url: urlval + "/getproduct",
                 method: "GET",
@@ -57,11 +57,9 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error("❌ getproduct 錯誤:", error);
+                    console.error("getproduct 錯誤:", error);
                 }
             });
-
-            // 2️⃣ 按下 VTVC 按鈕
             $("#btn").on("click", function (event) {
                 event.preventDefault();
 
@@ -86,12 +84,11 @@
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("❌ vtvc 錯誤:", status, error);
+                        console.error("vtvc 錯誤:", status, error);
                     }
                 });
             });
 
-            // 3️⃣ 渲染表格函數
             function renderTable(data) {
                 $("#table-body").empty();
                 data.forEach((item, index) => {
@@ -154,5 +151,6 @@
         });
     </script>
 </body>
+
 
 </html>
