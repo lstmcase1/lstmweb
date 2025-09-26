@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vegetable Trade Volume Collection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h2 style="margin-top: 15px;">Vegetable Trade Volume Collection Stage</h2>
+        <button class="btn btn-outline-dark" type="button" id="btn" style="margin-top: 10px;">Vegetable Trade Volume
+            Collection</button>
+        <button class="btn btn-outline-dark" type="button" id="btn2" style="margin-top: 10px;">Missing Value
+            Filtering</button>
+        <button class="btn btn-outline-dark" type="button" id="btn3" style="margin-top: 10px;">Filtering
+            Confirmed</button>
+        <button class="btn btn-outline-dark" type="button" id="btn4" style="margin-top: 10px;">Data
+            Preprocessing</button>
+        <button class="btn btn-outline-dark" type="button" id="btn6" style="margin-top: 10px;">Previous</button>
+        <button class="btn btn-outline-dark" type="button" id="btn7" style="margin-top: 10px;">Stop</button>
+        <div id="t1">
+            <table class="table table-bordered" style="margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th>Number/ID</th>
+                        <th>Product (Fruit/Vegetable)</th>
+                        <th>Data Count/Number of Records</th>
+                        <th>Consecutive Missing Values</th>
+                        <th>Missing >30 days</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- 資料會由 JS 填入 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            const urlval = "http://127.0.0.1:5001";
+            let tableData = []; // 儲存原始 getproduct 資料
+            let newData = [];
+            // 1️⃣ 先抓 getproduct
+            $.ajax({
+                url: urlval + "/getproduct",
+                method: "GET",
+                headers: { "ngrok-skip-browser-warning": "69420" },
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        tableData = data.map(item => ({ detail: item.detail })); // 初始化表格資料
+                        renderTable(tableData);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("❌ getproduct 錯誤:", error);
+                }
+            });
+
+            // 2️⃣ 按下 VTVC 按鈕
+            $("#btn").on("click", function (event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: urlval + "/vtvc",
+                    method: "GET",
+                    headers: { "ngrok-skip-browser-warning": "69420" },
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            // 將 VTVC 的 sum 和 max 填入 tableData
+                            data.forEach((item, index) => {
+                                if (!tableData[index]) tableData[index] = {};
+                                tableData[index].sum = item.sum;
+                                tableData[index].max = item.max;
+                                if (item.max === -1) {
+                                    tableData[index].missingOver30 = "Error";
+                                } else {
+                                    tableData[index].missingOver30 = item.max > 30 ? "Yes" : "No";
+                                }
+                            });
+                            renderTable(tableData);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("❌ vtvc 錯誤:", status, error);
+                    }
+                });
+            });
+
+            // 3️⃣ 渲染表格函數
+            function renderTable(data) {
+                $("#table-body").empty();
+                data.forEach((item, index) => {
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.detail || ""}</td>
+                            <td>${item.sum || ""}</td>
+                            <td>${item.max || ""}</td>
+                            <td>${item.missingOver30 || ""}</td>
+                        </tr>
+                    `;
+                    $("#table-body").append(row);
+                });
+            }
+            $("#btn2").on("click", function (event) {
+                event.preventDefault();
+
+                // 篩選 missingOver30 === "No"
+                const filteredData = tableData
+                    .filter(item => item.missingOver30 === "No")
+                    .map(item => ({
+                        detail: item.detail,
+                        sum: item.sum,
+                        max: item.max,
+                        missingOver30: item.missingOver30
+                    }));
+                console.log(filteredData)
+                // renderTable(filteredData);
+                // POST 到後端
+                $.ajax({
+                    url: urlval + "/missvalue",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(filteredData),
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            const newData = data.map(item => ({
+                                detail: item.detail,
+                                sum: item.sum,
+                                max: item.max,
+                                missingOver30: item.max > 30 ? "Yes" : "No"
+                            }));
+                            renderTable(newData);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("POST 錯誤:", error);
+                    }
+                });
+            });
+            $("#btn3").on("click", function (event) {
+                event.preventDefault();
+                alert(newData.some(item => item.missingOver30 === "Yes") ? "data error" : "The data has been restored")
+            });
+            $("#btn4").on("click", function (event) {
+                event.preventDefault();
+                window.location.href = "file:///C:/Users/kevin/Desktop/test1/2.html";
+            });
+        });
+    </script>
+</body>
+
+</html>
