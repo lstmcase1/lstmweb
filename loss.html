@@ -79,14 +79,14 @@
                 return checkedValues;
             }
 
-            window.renderChart = function (data1, data2 = null, Line1, Line2 = null, id, type) {
+            window.renderChart = function (data1, data2 = null, Line1, Line2 = null, id, type, date=null) {
                 const ctx = document.getElementById(id);
 
                 if (type === 1) {
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: data1.map((v, i) => i),
+                            labels: date,
                             datasets: [
                                 { label: Line1, data: data1, borderColor: 'red', borderWidth: 2, fill: false },
                                 { label: Line2, data: data2, borderColor: 'blue', borderWidth: 2, fill: false }
@@ -120,13 +120,14 @@
                         }
                     });
                 }
+                
             }
 
 
             $("#table_train").hide()
             $("#table_readdata").hide()
             // const urlval = "http://127.0.0.1:5001";
-            const urlval = "https://8308bdef259b.ngrok-free.app";
+            const urlval = "https://a8a0a7d84f40.ngrok-free.app";
             let tableData = [];
             let newData = [];
 
@@ -287,6 +288,9 @@
                         <div class="chart-container">
                             <canvas id="myChart_ap_${index}"></canvas>
                         </div>
+                        <div class="chart-container">
+                            <canvas id="myChart_co2_${index}"></canvas>
+                        </div>
                     </div>
                 `);
 
@@ -296,7 +300,9 @@
                             renderChart(item.loss, null, "loss", null, `myChart_loss_${index}`, 2);
 
 
-                            renderChart(item.actual, item.predictions, "actual", "predictions", `myChart_ap_${index}`, 1);
+                            renderChart(item.actual, item.predictions, "actual", "predictions", `myChart_ap_${index}`, 1, item.date);
+
+                            renderChart(item.co2_train_thr, item.co2_train_co2, "co2_threshold", "co2_prediction", `myChart_co2_${index}`, 1, item.date);
                         });
                     },
                     error: function (xhr, status, error) {
