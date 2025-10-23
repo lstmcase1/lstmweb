@@ -9,6 +9,52 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        #rangeInput,
+        #dayInput {
+            width: 50%;
+        }
+
+        #container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        #percent {
+            width: 50px;
+            text-align: right;
+            margin-right: 10px;
+            font-family: "Microsoft JhengHei", monospace;
+            font-size: 18px;
+        }
+
+        #progress-container {
+            flex: 1;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 10px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            transition: width 0.2s;
+        }
+
+        #log {
+            font-family: "Microsoft JhengHei", monospace;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         .chart-row {
             display: flex;
             gap: 5%;
@@ -35,6 +81,15 @@
         <button class="btn btn-outline-dark" type="button" id="btn6" style="margin-top: 10px;">Previous</button>
         <button class="btn btn-outline-dark" type="button" id="btn7" style="margin-top: 10px;">Stop</button>
         <button class="btn btn-danger" type="button" id="btn8" style="margin-top: 10px;">Train Start</button>
+        <div>
+            <div id="container">
+                <div id="percent">0%</div>
+                <div id="progress-container">
+                    <div id="progress-bar"></div>
+                </div>
+            </div>
+            <div id="log"></div>
+        </div>
         <div id="t1">
             <table class="table table-bordered" style="margin-top: 10px;">
                 <thead>
@@ -60,131 +115,244 @@
                 <canvas id="myChart2"></canvas>
             </div>
         </div> -->
+        <div id="train-div">
+            <div style="margin: 20px;">
+                <label for="rangeInput">資料切割</label>
+                <input type="range" id="rangeInput" min="10" max="90" value="50" step="10" oninput="updateValue(this)">
+                <br>
+                <div style="display: flex; gap: 200px;">
+                    <span>訓練集: <span id="rangeValue">0</span></span>
+                    <span>測試集: <span id="rightValue">0</span></span>
+                </div>
+            </div>
+            <div style="margin: 20px;">
+                <label for="dayInput">預測天數</label>
+                <input type="range" id="dayInput" min="1" max="30" value="15" step="1" oninput="updateValue_day(this)">
+                <br>
+                <div style="display: flex; gap: 200px;">
+                    <span>天數: <span id="dayValue">0</span></span>
+                </div>
+            </div>
+        </div>
         <div id="charts-wrapper"></div>
-    </div>
-
-    <script>
-        $(document).ready(function () {
-            window.readdata_f = function (prodcut) {
-                // console.log(`file:///C:/Users/kevin/Desktop/test1/2.html?product=${prodcut}`)
-                url = `file:///C:/Users/kevin/Desktop/test1/newpage.html?product=${encodeURIComponent(prodcut)}`;
-                window.open(url, "_blank")
-            }
-
-
-            window.getCheckedValues = function () {
-                let checkedValues = $(".form-check-input:checked").map(function () {
-                    return $(this).val();
-                }).get();
-                return checkedValues;
-            }
-
-            window.renderChart = function (data1, data2 = null, Line1, Line2 = null, id, type, date=null) {
-                const ctx = document.getElementById(id);
-
-                if (type === 1) {
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: date,
-                            datasets: [
-                                { label: Line1, data: data1, borderColor: 'red', borderWidth: 2, fill: false },
-                                { label: Line2, data: data2, borderColor: 'blue', borderWidth: 2, fill: false }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: { grid: { display: false }, title: { display: true, text: "day", font: { size: 16 } } },
-                                y: { grid: { display: false }, title: { display: true, text: "volume", font: { size: 16 } } }
-                            }
-                        }
-                    });
-                } else if (type === 2) {
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: data1.map((v, i) => i),
-                            datasets: [
-                                { label: Line1, data: data1, borderColor: 'blue', borderWidth: 2, fill: false }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: { grid: { display: false }, title: { display: true, text: "epoch", font: { size: 16 } } },
-                                y: { grid: { display: false }, title: { display: true, text: "loss", font: { size: 16 } } }
-                            }
-                        }
-                    });
+        <script>
+            $(document).ready(function () {
+                window.updateValue = function (slider) {
+                    const value = Number(slider.value);
+                    document.getElementById("rangeValue").textContent = value;
+                    document.getElementById("rightValue").textContent = 100 - value;
                 }
-                
-            }
+                updateValue(document.getElementById("rangeInput"));
+
+                window.updateValue_day = function (slider) {
+                    const value = Number(slider.value);
+                    document.getElementById("dayValue").textContent = value;
+                }
+                updateValue_day(document.getElementById("dayInput"));
+                window.readdata_f = function (prodcut) {
+                    // console.log(`file:///C:/Users/kevin/Desktop/test1/2.html?product=${prodcut}`)
+                    url = `file:///C:/Users/kevin/Desktop/test1/newpage.html?product=${encodeURIComponent(prodcut)}`;
+                    window.open(url, "_blank")
+                }
 
 
-            $("#table_train").hide()
-            $("#table_readdata").hide()
-            // const urlval = "http://127.0.0.1:5001";
-            const urlval = "https://7d0932fc2de9.ngrok-free.app";
-            let tableData = [];
-            let newData = [];
+                window.getCheckedValues = function () {
+                    let checkedValues = $(".form-check-input:checked").map(function () {
+                        return $(this).val();
+                    }).get();
+                    return checkedValues;
+                }
+                window.getCheckedValues_missvalue = function () {
+                    let checkedValues = $(".form-check-input:checked").map(function () {
+                        return $(this).val();
+                    }).get();
+                    return checkedValues;
+                }
 
-            $.ajax({
-                url: urlval + "/getproduct",
-                method: "GET",
-                headers: { "ngrok-skip-browser-warning": "69420" },
-                success: function (data) {
-                    if (data && data.length > 0) {
-                        tableData = data.map(item => ({ detail: item.detail }));
-                        renderTable(tableData);
+                window.renderChart = function (data1, data2 = null, Line1, Line2 = null, id, type, date = null) {
+                    const ctx = document.getElementById(id);
+
+                    if (type === 1) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: date,
+                                datasets: [
+                                    { label: Line1, data: data1, borderColor: 'red', borderWidth: 2, fill: false },
+                                    { label: Line2, data: data2, borderColor: 'blue', borderWidth: 2, fill: false }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: { grid: { display: false }, title: { display: true, text: "day", font: { size: 16 } } },
+                                    y: { grid: { display: false }, title: { display: true, text: "volume", font: { size: 16 } } }
+                                }
+                            }
+                        });
+                    } else if (type === 2) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data1.map((v, i) => i),
+                                datasets: [
+                                    { label: Line1, data: data1, borderColor: 'blue', borderWidth: 2, fill: false }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: { grid: { display: false }, title: { display: true, text: "epoch", font: { size: 16 } } },
+                                    y: { grid: { display: false }, title: { display: true, text: "loss", font: { size: 16 } } }
+                                }
+                            }
+                        });
                     }
-                },
-                error: function (xhr, status, error) {
-                    console.error("錯誤:", error);
+
                 }
-            });
 
 
-            $("#btn").on("click", function (event) {
-                event.preventDefault();
-
+                $("#table_train").hide()
+                $("#table_readdata").hide()
+                $("#container").hide()
+                //const urlval = "http://127.0.0.1:5001";
+                const urlval = "https://32219120c702.ngrok-free.app";
+                let tableData = [];
+                let newData = [];
+                const progressBar = document.getElementById('progress-bar');
+                const percentText = document.getElementById('percent');
+                const log = document.getElementById('log');
+                const btn_btn = document.getElementById('btn');
+                const btn_btn2 = document.getElementById('btn2');
                 $.ajax({
-                    url: urlval + "/vtvc",
+                    url: urlval + "/getproduct",
                     method: "GET",
                     headers: { "ngrok-skip-browser-warning": "69420" },
                     success: function (data) {
                         if (data && data.length > 0) {
-
-                            data.forEach((item, index) => {
-                                if (!tableData[index]) tableData[index] = {};
-                                tableData[index].sum = item.sum;
-                                tableData[index].max = item.max;
-                                if (item.max === -1) {
-                                    tableData[index].missingOver30 = "Error";
-                                } else {
-                                    tableData[index].missingOver30 = item.max > 30 ? "Yes" : "No";
-                                }
-                            });
+                            tableData = data.map(item => ({ detail: item.detail }));
                             renderTable(tableData);
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("錯誤:", status, error);
+                        console.error("錯誤:", error);
                     }
                 });
-            });
+                btn_btn.addEventListener('click', () => {
+                    btn_btn.disabled = true;
+                    log.textContent = "開始處理...";
+                    let total = 0;
+                    let current = 0;
+                    $("#container").show()
+                    $("#log").show()
+                    fetch(urlval + '/numbers', {
+                        headers: { "ngrok-skip-browser-warning": "69420" }
+                    })
+                        .then(res => {
+                            const reader = res.body.getReader();
+                            const decoder = new TextDecoder();
+
+                            function read() {
+                                reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        fetch(urlval + '/vtvcaa',
+                                            { headers: { "ngrok-skip-browser-warning": "69420" } }
+                                        )
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    data.forEach((item, index) => {
+                                                        if (!tableData[index]) tableData[index] = {};
+                                                        tableData[index].sum = item.sum;
+                                                        tableData[index].max = item.max;
+                                                        if (item.max === -1) {
+                                                            tableData[index].missingOver30 = "Error";
+                                                        } else {
+                                                            tableData[index].missingOver30 = item.max > 30 ? "Yes" : "No";
+                                                        }
+                                                    });
+                                                    renderTable(tableData, true);
+                                                }
+                                            });
+                                        btn_btn.disabled = false;
+                                        setTimeout(() => {
+                                            $("#container").hide()
+                                            $("#log").hide()
+                                        }, 500);
+                                        $('#table_train').text(' ')
+                                        return;
+                                    }
+                                    const text = decoder.decode(value);
+                                    text.split('\n').forEach(line => {
+                                        if (!line.trim()) return;
+
+                                        if (line.startsWith("TOTAL:")) {
+                                            total = parseInt(line.replace("TOTAL:", ""));
+                                        } else if (line === "processing...") {
+                                            log.textContent = "Excel 處理中...";
+                                        } else if (line === "100") {
+                                            current = total;
+                                            updateProgress();
+                                            log.textContent = "完成!";
+                                        } else {
+                                            current++;
+                                            updateProgress();
+                                        }
+                                    });
+                                    read();
+                                });
+                            }
+
+                            function updateProgress() {
+                                const percent = Math.round((current / total) * 100);
+                                progressBar.style.width = percent + "%";
+                                percentText.textContent = percent + "%";
+                            }
+
+                            read();
+                        });
+                });
+                //尋找缺失值
+                // $("#btn").on("click", function (event) {
+                //     event.preventDefault();
+
+                //     $.ajax({
+                //         url: urlval + "/vtvc",
+                //         method: "GET",
+                //         headers: { "ngrok-skip-browser-warning": "69420" },
+                //         success: function (data) {
+                //             if (data && data.length > 0) {
+
+                //                 data.forEach((item, index) => {
+                //                     if (!tableData[index]) tableData[index] = {};
+                //                     tableData[index].sum = item.sum;
+                //                     tableData[index].max = item.max;
+                //                     if (item.max === -1) {
+                //                         tableData[index].missingOver30 = "Error";
+                //                     } else {
+                //                         tableData[index].missingOver30 = item.max > 30 ? "Yes" : "No";
+                //                     }
+                //                 });
+                //                 renderTable(tableData);
+                //             }
+                //         },
+                //         error: function (xhr, status, error) {
+                //             console.error("錯誤:", status, error);
+                //         }
+                //     });
+                // });
 
 
-            function renderTable(data, chbox = false) {
-                if (chbox) {
-                    $("#table_train").show()
-                    $("#table_readdata").show()
-                    console.log("true")
-                    $("#table-body").empty();
-                    data.forEach((item, index) => {
-                        const row = `
+                function renderTable(data, chbox = false) {
+                    if (chbox) {
+                        $("#table_train").show()
+                        $("#table_readdata").show()
+                        console.log("true")
+                        $("#table-body").empty();
+                        data.forEach((item, index) => {
+                            const row = `
                         <tr><td>
                             <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="${item.detail || ""}" id="flexCheckDefault">
@@ -200,13 +368,13 @@
                             </td>
                         </tr>
                     `;
-                        $("#table-body").append(row);
-                    });
-                } else {
-                    console.log("false")
-                    $("#table-body").empty();
-                    data.forEach((item, index) => {
-                        const row = `
+                            $("#table-body").append(row);
+                        });
+                    } else {
+                        console.log("false")
+                        $("#table-body").empty();
+                        data.forEach((item, index) => {
+                            const row = `
                         <tr>
                             <td>${index + 1}</td>
                             <td>${item.detail || ""}</td>
@@ -215,71 +383,171 @@
                             <td>${item.missingOver30 || ""}</td>
                         </tr>
                     `;
-                        $("#table-body").append(row);
-                    });
-                }
-            }
-            $("#btn2").on("click", function (event) {
-                event.preventDefault();
-
-
-                const filteredData = tableData
-                    .filter(item => item.missingOver30 === "No")
-                    .map(item => ({
-                        detail: item.detail,
-                        sum: item.sum,
-                        max: item.max,
-                        missingOver30: item.missingOver30
-                    }));
-                console.log(filteredData)
-
-                $.ajax({
-                    url: urlval + "/missvalue",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(filteredData),
-                    success: function (data) {
-                        if (data && data.length > 0) {
-                            const newData = data.map(item => ({
-                                detail: item.detail,
-                                sum: item.sum,
-                                max: item.max,
-                                missingOver30: item.max > 30 ? "Yes" : "No"
-                            }));
-                            renderTable(newData, true);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("錯誤:", error);
+                            $("#table-body").append(row);
+                        });
                     }
+                }
+                btn_btn2.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    let selected_missvalue = getCheckedValues_missvalue().map(v => ({
+                        detail: v
+                    }));
+                    console.log(selected_missvalue);
+                    btn_btn2.disabled = true;
+                    log.textContent = "開始處理...";
+                    let total = 0;
+                    let current = 0;
+                    $("#container").show();
+                    $("#log").show();
+
+                    fetch(urlval + '/missvalue', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "ngrok-skip-browser-warning": "69420"
+                        },
+                        body: JSON.stringify(selected_missvalue)
+                    })
+                        .then(res => {
+                            const reader = res.body.getReader();
+                            const decoder = new TextDecoder();
+
+                            function read() {
+                                reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        fetch(urlval + '/missvaluea',{
+                                            headers: { "ngrok-skip-browser-warning": "69420" }
+                                        })
+                                            .then(r => r.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    const newData = data.map(item => ({
+                                                        detail: item.detail,
+                                                        sum: item.sum,
+                                                        max: item.max,
+                                                        missingOver30: item.max > 30 ? "Yes" : "No"
+                                                    }));
+                                                    $('#table_train').text('Trainn');
+                                                    renderTable(newData, true);
+                                                }
+                                            });
+                                        btn_btn2.disabled = false;
+                                        setTimeout(() => {
+                                            $("#container").hide();
+                                            $("#log").hide();
+                                        }, 500);
+                                        $('#table_train').text(' ');
+                                        return;
+                                    }
+
+                                    const text = decoder.decode(value);
+                                    text.split('\n').forEach(line => {
+                                        if (!line.trim()) return;
+
+                                        if (line.startsWith("TOTAL:")) {
+                                            total = parseInt(line.replace("TOTAL:", ""));
+                                        } else if (line === "processing...") {
+                                            log.textContent = "Excel 處理中...";
+                                        } else if (line === "100") {
+                                            current = total;
+                                            updateProgress();
+                                            log.textContent = "完成!";
+                                        } else {
+                                            current++;
+                                            updateProgress();
+                                        }
+                                    });
+                                    read();
+                                });
+                            }
+
+                            function updateProgress() {
+                                const percent = Math.round((current / total) * 100);
+                                progressBar.style.width = percent + "%";
+                                percentText.textContent = percent + "%";
+                            }
+
+                            read();
+                        })
+                        .catch(err => {
+                            console.error("發送 /missvalue 時出錯：", err);
+                            log.textContent = "發送失敗，請檢查伺服器！";
+                            btn_btn2.disabled = false;
+                        });
                 });
-            });
-            $("#btn3").on("click", function (event) {
-                event.preventDefault();
-                alert(newData.some(item => item.missingOver30 === "Yes") ? "data error" : "The data has been restored")
-            });
-            // $("#btn4").on("click", function (event) {
-            //     event.preventDefault();
-            //     window.location.href = "file:///C:/Users/kevin/Desktop/test1/2.html";
-            // });
-            $("#btn8").on("click", function (event) {
-                let selected = getCheckedValues();
-                console.log(selected)
-                alert(`開始訓練:${selected}`)
-                $.ajax({
-                    url: urlval + "/selectproduct2",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(selected),
-                    success: function (data) {
-                        console.log("回傳資料:", data);
+                //缺失值補值
+                // $("#btn2").on("click", function (event) {
+                //     event.preventDefault();
+                //     let selected_missvalue = getCheckedValues_missvalue().map(v => ({
+                //         detail: v
+                //     }));
+                //     console.log(selected_missvalue)
+
+                //     // const filteredData = tableData
+                //     //     .filter(item => item.missingOver30 === "No")
+                //     //     .map(item => ({
+                //     //         detail: item.detail,
+                //     //         sum: item.sum,
+                //     //         max: item.max,
+                //     //         missingOver30: item.missingOver30
+                //     //     }));
+                //     // console.log(filteredData)
+
+                //     $.ajax({
+                //         url: urlval + "/missvalue",
+                //         method: "POST",
+                //         contentType: "application/json",
+                //         data: JSON.stringify(selected_missvalue),
+                //         success: function (data) {
+                //             if (data && data.length > 0) {
+                //                 const newData = data.map(item => ({
+                //                     detail: item.detail,
+                //                     sum: item.sum,
+                //                     max: item.max,
+                //                     missingOver30: item.max > 30 ? "Yes" : "No"
+                //                 }));
+                //                 $('#table_train').text('Trainn')
+                //                 renderTable(newData, true);
+                //             }
+                //         },
+                //         error: function (xhr, status, error) {
+                //             console.error("錯誤:", error);
+                //         }
+                //     });
+                // });
+                //判斷補值成功
+                $("#btn3").on("click", function (event) {
+                    event.preventDefault();
+                    alert(newData.some(item => item.missingOver30 === "Yes") ? "data error" : "The data has been restored")
+                });
+                // $("#btn4").on("click", function (event) {
+                //     event.preventDefault();
+                //     window.location.href = "file:///C:/Users/kevin/Desktop/test1/2.html";
+                // });
+                //訓練
+                $("#btn8").on("click", function (event) {
+                    let selected = getCheckedValues();
+                    console.log(selected)
+                    // console.log(Number($("#rightValue").val()))
+                    alert(`開始訓練:${selected}`)
+                    $.ajax({
+                        url: urlval + "/selectproduct2",
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            day: Number($("#dayInput").val()),
+                            split_day: Number($("#rightValue").text()),
+                            selected: getCheckedValues()
+                        }),
+                        success: function (data) {
+                            console.log("回傳資料:", data);
 
 
-                        $("#charts-wrapper").empty();
+                            $("#charts-wrapper").empty();
 
-                        data.results.forEach((item, index) => {
+                            data.results.forEach((item, index) => {
 
-                            let chartRow = $(`
+                                let chartRow = $(`
                     <div class="chart-row">
                         <h3>${item.product}</h3>
                         <div class="chart-container">
@@ -294,26 +562,25 @@
                     </div>
                 `);
 
-                            $("#charts-wrapper").append(chartRow);
+                                $("#charts-wrapper").append(chartRow);
 
 
-                            renderChart(item.loss, null, "loss", null, `myChart_loss_${index}`, 2);
+                                renderChart(item.loss, null, "loss", null, `myChart_loss_${index}`, 2);
 
 
-                            renderChart(item.actual, item.predictions, "actual", "predictions", `myChart_ap_${index}`, 1, item.date);
+                                renderChart(item.actual, item.predictions, "actual", "predictions", `myChart_ap_${index}`, 1, item.date);
 
-                            renderChart(item.co2_train_thr, item.co2_train_co2, "co2_threshold", "co2_prediction", `myChart_co2_${index}`, 1, item.date);
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("錯誤:", error);
-                    }
+                                renderChart(item.co2_train_thr, item.co2_train_co2, "co2_threshold", "co2_prediction", `myChart_co2_${index}`, 1, item.date);
+                            });
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("錯誤:", error);
+                        }
+                    });
                 });
-            });
 
-        });
-    </script>
+            });
+        </script>
 </body>
 
 </html>
-
