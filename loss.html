@@ -548,7 +548,7 @@
                         data: JSON.stringify({
                             day: Number($("#dayInput").val()),
                             split_day: Number($("#rightValue").text()),
-                            selected: getCheckedValues()
+                            selected: getCheckedValues().filter(v => v !== "on")
                         }),
                         success: function (data) {
                             console.log("回傳資料:", data);
@@ -595,6 +595,7 @@
 </body>
 
 </html>
+
 
 
 
