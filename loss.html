@@ -396,7 +396,9 @@
                 }
                 btn_btn2.addEventListener('click', (event) => {
                     event.preventDefault();
-                    let selected_missvalue = getCheckedValues_missvalue().map(v => ({
+                    let selected_missvalue = getCheckedValues_missvalue()
+                    .filter(v => v !== "on")
+                    .map(v => ({
                         detail: v
                     }));
                     console.log(selected_missvalue);
@@ -595,6 +597,7 @@
 </body>
 
 </html>
+
 
 
 
