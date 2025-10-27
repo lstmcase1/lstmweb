@@ -284,7 +284,11 @@
                                             $("#container").hide()
                                             $("#log").hide()
                                         }, 500);
-                                        $('#table_train').text(' ')
+                                        $('#table_train').html(`<input class="form-check-input main-checkbox" type="checkbox" id="mainCheck">`);
+                                        $(document).on('change', '#mainCheck', function () {
+                                            const isChecked = $(this).is(':checked');
+                                            $('.child').prop('checked', isChecked);
+                                        });
                                         return;
                                     }
                                     const text = decoder.decode(value);
@@ -591,5 +595,6 @@
 </body>
 
 </html>
+
 
 
